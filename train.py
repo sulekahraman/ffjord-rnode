@@ -320,7 +320,7 @@ def main():
         assert(dist_utils.env_world_size() == distributed.get_world_size())
         if write_log: logger.info("Distributed: success (%d/%d)"%(args.local_rank, distributed.get_world_size()))
 
-    # get deivce
+    # get device
     device = torch.device("cuda:%d"%torch.cuda.current_device() if torch.cuda.is_available() else "cpu")
     cvt = lambda x: x.type(torch.float32).to(device, non_blocking=True)
 
@@ -335,7 +335,7 @@ def main():
 
     # build model
     regularization_fns, regularization_coeffs = create_regularization_fns(args)
-    model = create_model(args, data_shape, regularization_fns).cuda()
+    model = create_model(args, data_shape, regularization_fns) #.cuda() # Sule: Add this back if using GPU
     if args.distributed: model = dist_utils.DDP(model,
                                                 device_ids=[args.local_rank], 
                                                 output_device=args.local_rank)
@@ -597,6 +597,7 @@ if __name__ == '__main__':
     except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         import traceback
+        print("Exception occured: ", e)
         traceback.print_tb(exc_traceback, file=sys.stdout)
         # in case of exception, wait 2 hours before shutting down
         #if not args.skip_auto_shutdown: os.system(f'sudo shutdown -h -P +{args.auto_shutdown_failure_delay_mins}')
